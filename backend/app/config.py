@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     database_url: str = f"sqlite:///{(ROOT / 'data' / 'specground.db').as_posix()}"
     upload_dir: str = str(ROOT / "data" / "uploads")
     cors_origins: str = "http://localhost:5173,http://localhost:3000"
+    static_dir: str = ""
 
     model_config = SettingsConfigDict(
         env_file=str(ROOT / ".env"),

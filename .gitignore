@@ -13,7 +13,11 @@ dist
 .DS_Store
 frontend/dist
 backend/.venv
+backend/.venv/
 .idea
 .vscode
 *.pdf
 !backend/sample_docs/.gitkeep
+.env
+.env.local
+

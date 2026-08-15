@@ -1,0 +1,25 @@
+# SpecGround — one free Render web service (API + React UI)
+
+services:
+  - type: web
+    name: specground
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ANTHROPIC_CHAT_MODEL
+        value: claude-sonnet-4-5
+      - key: ANTHROPIC_GUARD_MODEL
+        value: claude-haiku-4-5
+      - key: EMBEDDING_DIM
+        value: "384"
+      - key: UPLOAD_DIR
+        value: /data/uploads
+      - key: DATABASE_URL
+        value: sqlite:////data/specground.db
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: STATIC_DIR
+        value: /app/static

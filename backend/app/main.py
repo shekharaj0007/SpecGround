@@ -1,5 +1,9 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.db import init_db
@@ -39,3 +43,22 @@ def health():
         "anthropic_configured": settings.anthropic_configured,
         "llm": "anthropic" if settings.anthropic_configured else "none",
     }
+
+
+STATIC_DIR = Path(settings.static_dir) if settings.static_dir else Path()
+if STATIC_DIR.is_dir():
+    assets = STATIC_DIR / "assets"
+    if assets.is_dir():
+        app.mount("/assets", StaticFiles(directory=assets), name="assets")
+
+    @app.get("/{full_path:path}")
+    def spa(full_path: str):
+        if full_path.startswith("api"):
+            return {"detail": "Not found"}
+        candidate = STATIC_DIR / full_path
+        if candidate.is_file():
+            return FileResponse(candidate)
+        index = STATIC_DIR / "index.html"
+        if index.is_file():
+            return FileResponse(index)
+        return {"detail": "UI not built"}
