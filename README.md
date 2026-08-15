@@ -43,6 +43,23 @@ flowchart LR
   UI --> Highlight[PDF bbox highlight]
 ```
 
+
+
+
+## Screenshots
+
+### Workspace Dashboard
+
+<p align="center">
+  <img src="assets/Workspace%20DashBoard.png" alt="SpecGround Workspace Dashboard" width="100%">
+</p>
+
+### Evaluation Dashboard
+
+<p align="center">
+  <img src="assets/Evaluation%20Dashboard.png" alt="SpecGround Evaluation Dashboard" width="100%">
+</p>
+
 **Stack:** React + TypeScript · FastAPI · PostgreSQL/`pgvector` · Docker Compose
 
 ---
