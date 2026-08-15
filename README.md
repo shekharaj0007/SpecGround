@@ -47,7 +47,7 @@ flowchart LR
 ### Evaluation Dasboard
 
 <p align="center">
-  <img src="assets/Evaluation%20Dasboard.png" alt="SpecGround Evaluation Dashboard" width="100%">
+  <img src="assets/Evaluation%20Dasboard .png" alt="SpecGround Evaluation Dashboard" width="100%">
 </p>
 
 
