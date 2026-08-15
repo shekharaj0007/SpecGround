@@ -1,0 +1,102 @@
+[
+  {
+    "question": "What is the minimum design pressure for Category D fluid service in SG-PIPING-2024?",
+    "expected": "150 psi (1.03 MPa)",
+    "must_include": ["150"]
+  },
+  {
+    "question": "State the minimum required wall thickness formula for straight pipe under internal pressure.",
+    "expected": "t = (P × D) / (2 × (S × E × W + P × Y)) + c",
+    "must_include": ["S", "E", "Y"]
+  },
+  {
+    "question": "What is the allowable stress for A106 Grade B at 500 °F according to Table 4.1-1?",
+    "expected": "18.9 ksi (130.3 MPa)",
+    "must_include": ["18.9"]
+  },
+  {
+    "question": "What weld joint quality factor E is used for seamless pipe?",
+    "expected": "1.00",
+    "must_include": ["1.00"]
+  },
+  {
+    "question": "What corrosion allowance shall be added for carbon steel in water and steam service?",
+    "expected": "0.063 in (1.6 mm)",
+    "must_include": ["0.063"]
+  },
+  {
+    "question": "Are threaded joints permitted above 250 psi in flammable fluid service?",
+    "expected": "No, threaded joints are not permitted above 250 psi (1.72 MPa) in flammable fluid service.",
+    "must_include": ["250"]
+  },
+  {
+    "question": "What is the maximum allowable external pressure for NPS 6 Schedule 40 A106 Grade B at 300 °F with a 10 ft unsupported length?",
+    "expected": "430 psi (2.96 MPa)",
+    "must_include": ["430"]
+  },
+  {
+    "question": "What is the support spacing limit for NPS 4 water-filled carbon steel pipe?",
+    "expected": "14 ft (4.3 m)",
+    "must_include": ["14"]
+  },
+  {
+    "question": "What is the rated flow and TDH of the CP-450 pump?",
+    "expected": "450 gpm at 180 ft TDH",
+    "must_include": ["450"]
+  },
+  {
+    "question": "What is NPSHr of the CP-450 at the rated point of 450 gpm?",
+    "expected": "9.5 ft",
+    "must_include": ["9.5"]
+  },
+  {
+    "question": "What is the casing MAWP of the CP-450?",
+    "expected": "175 psig at 250 °F",
+    "must_include": ["175"]
+  },
+  {
+    "question": "What are the suction and discharge nozzle sizes on the CP-450?",
+    "expected": "Suction NPS 4 (4 in 150 lb), discharge NPS 3 (3 in 150 lb)",
+    "must_include": ["4"]
+  },
+  {
+    "question": "What is the minimum tensile strength for MS-A106 Grade B?",
+    "expected": "60 ksi (415 MPa)",
+    "must_include": ["60"]
+  },
+  {
+    "question": "What is the maximum carbon content for Grade B in Table 2-1?",
+    "expected": "0.30%",
+    "must_include": ["0.30"]
+  },
+  {
+    "question": "What is the hydrostatic test pressure for MS-A106 pipe (the stated 2500 psi option)?",
+    "expected": "2500 psi (17.2 MPa) or P = 2St/D with S = 60% SMYS, whichever is lower",
+    "must_include": ["2500"]
+  },
+  {
+    "question": "What is NPS 6 Schedule 40 outside diameter and nominal wall in MS-A106?",
+    "expected": "OD 6.625 in (168.3 mm), wall 0.280 in (7.11 mm)",
+    "must_include": ["6.625"]
+  },
+  {
+    "question": "Compare the 175 psig limit on the CP-450 casing with the 150 psi Category D minimum design pressure in SG-PIPING-2024. Can Category D water at 150 psi be pumped by the CP-450 from a pressure-rating standpoint?",
+    "expected": "Yes: Category D minimum design pressure is 150 psi and CP-450 casing MAWP is 175 psig, so 150 psi is below the pump MAWP. Confirm temperature ≤ 250 °F.",
+    "must_include": ["175"]
+  },
+  {
+    "question": "Does SG-PIPING-2024 list an allowable stress for A106 Grade B at 1000 °F?",
+    "expected": "Not found; table stops at 800 °F and design above 800 °F is not permitted.",
+    "must_include": ["not found"]
+  },
+  {
+    "question": "Convert the CP-450 rated head of 180 ft to metres using the datasheet.",
+    "expected": "54.9 m",
+    "must_include": ["54.9"]
+  },
+  {
+    "question": "What is the carbon equivalent limit for MS-A106 pipe that will be welded without PWHT, and the CE formula?",
+    "expected": "CE shall not exceed 0.43; CE = C + Mn/6 + (Cr+Mo+V)/5 + (Ni+Cu)/15",
+    "must_include": ["0.43"]
+  }
+]
