@@ -142,6 +142,27 @@ class SavedQuery(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
 
+class Note(Base):
+    """A short note on one saved query or one document."""
+
+    __tablename__ = "notes"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    body: Mapped[str] = mapped_column(Text)
+    author: Mapped[str] = mapped_column(String(128), default="local")
+    document_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("documents.id", ondelete="CASCADE"), nullable=True
+    )
+    saved_query_id: Mapped[Optional[str]] = mapped_column(
+        String(36), ForeignKey("saved_queries.id", ondelete="CASCADE"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+Index("ix_notes_document_id", Note.document_id)
+Index("ix_notes_saved_query_id", Note.saved_query_id)
+
+
 class ClauseWatch(Base):
     """A clause number or heading to compare when a newer document is ingested."""
 

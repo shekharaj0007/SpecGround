@@ -10,7 +10,8 @@ from sqlalchemy.orm import Session
 
 from app.db import SessionLocal, get_db
 from app.models import CollectionDocument, Document
-from app.schemas import DocumentOut
+from app.schemas import ClauseCompareIn, ClauseCompareOut, DocumentOut
+from app.services.doc_compare import compare_stored_documents
 from app.services.ingest import ensure_upload_dir, ingest_document
 from app.services.insights import ensure_insights
 from app.services.sample_docs import generate_all
@@ -67,6 +68,18 @@ def seed_sample_documents(background: BackgroundTasks, db: Session = Depends(get
     if not created:
         return db.query(Document).order_by(Document.created_at.desc()).all()
     return created
+
+
+@router.post("/compare", response_model=ClauseCompareOut)
+def compare_document_clauses(body: ClauseCompareIn, db: Session = Depends(get_db)):
+    """Clauses that differ on a shared number, plus clauses only on one side."""
+    try:
+        payload = compare_stored_documents(db, body.left_id.strip(), body.right_id.strip())
+    except LookupError:
+        raise HTTPException(404, "Document not found") from None
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from None
+    return ClauseCompareOut(**payload)
 
 
 @router.post("", response_model=DocumentOut)

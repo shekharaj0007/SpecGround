@@ -1,11 +1,13 @@
 import type {
   ChatResponse,
   CitationExport,
+  ClauseCompare,
   ClauseWatch,
   Collection,
   CompareResult,
   Document,
   EvalRun,
+  Note,
   SavedQuery,
 } from "./types";
 
@@ -180,5 +182,39 @@ export const api = {
     });
     if (!res.ok) throw new Error(await parseError(res));
     return res.json() as Promise<CompareResult>;
+  },
+
+  async compareClauses(leftId: string, rightId: string) {
+    const res = await fetch("/api/documents/compare", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ left_id: leftId, right_id: rightId }),
+    });
+    if (!res.ok) throw new Error(await parseError(res));
+    return res.json() as Promise<ClauseCompare>;
+  },
+
+  async listNotes(filter: { documentId?: string; savedQueryId?: string }) {
+    const params = new URLSearchParams();
+    if (filter.documentId) params.set("document_id", filter.documentId);
+    if (filter.savedQueryId) params.set("saved_query_id", filter.savedQueryId);
+    const res = await fetch(`/api/notes?${params}`);
+    if (!res.ok) throw new Error(await parseError(res));
+    return res.json() as Promise<Note[]>;
+  },
+
+  async createNote(body: { body: string; author: string; document_id?: string; saved_query_id?: string }) {
+    const res = await fetch("/api/notes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(await parseError(res));
+    return res.json() as Promise<Note>;
+  },
+
+  async removeNote(id: string) {
+    const res = await fetch(`/api/notes/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error(await parseError(res));
   },
 };

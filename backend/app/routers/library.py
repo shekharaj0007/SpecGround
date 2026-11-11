@@ -1,4 +1,4 @@
-"""Collections, saved queries, and clause watches."""
+"""Collections, saved queries, clause watches, and notes."""
 
 from __future__ import annotations
 
@@ -6,13 +6,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import ClauseWatch, Collection, CollectionDocument, Document, SavedQuery
+from app.models import ClauseWatch, Collection, CollectionDocument, Document, Note, SavedQuery
 from app.schemas import (
     ClauseWatchIn,
     ClauseWatchOut,
     CollectionIn,
     CollectionMembers,
     CollectionOut,
+    NoteIn,
+    NoteOut,
     SavedQueryIn,
     SavedQueryOut,
 )
@@ -187,6 +189,69 @@ def delete_clause_watch(watch_id: str, db: Session = Depends(get_db)):
     row = db.get(ClauseWatch, watch_id)
     if not row:
         raise HTTPException(404, "Clause watch not found")
+    db.delete(row)
+    db.commit()
+    return {"ok": True}
+
+
+def _note_out(row: Note) -> NoteOut:
+    return NoteOut(
+        id=row.id,
+        body=row.body,
+        author=row.author,
+        document_id=row.document_id,
+        saved_query_id=row.saved_query_id,
+        created_at=_iso(row.created_at),
+    )
+
+
+@router.get("/notes", response_model=list[NoteOut])
+def list_notes(
+    document_id: str | None = None,
+    saved_query_id: str | None = None,
+    db: Session = Depends(get_db),
+):
+    if bool(document_id) == bool(saved_query_id):
+        raise HTTPException(400, "Filter by a document or a saved query")
+    query = db.query(Note)
+    if document_id:
+        query = query.filter(Note.document_id == document_id)
+    else:
+        query = query.filter(Note.saved_query_id == saved_query_id)
+    rows = query.order_by(Note.created_at.desc()).all()
+    return [_note_out(row) for row in rows]
+
+
+@router.post("/notes", response_model=NoteOut)
+def create_note(body: NoteIn, db: Session = Depends(get_db)):
+    text = body.body.strip()
+    if not text:
+        raise HTTPException(400, "Note text is required")
+    if len(text) > 1000:
+        raise HTTPException(400, "Note is too long")
+    author = (body.author or "local").strip() or "local"
+    if len(author) > 128:
+        raise HTTPException(400, "Author is too long")
+    document_id = (body.document_id or "").strip() or None
+    saved_query_id = (body.saved_query_id or "").strip() or None
+    if bool(document_id) == bool(saved_query_id):
+        raise HTTPException(400, "Attach the note to a document or a saved query")
+    if document_id and not db.get(Document, document_id):
+        raise HTTPException(404, "Document not found")
+    if saved_query_id and not db.get(SavedQuery, saved_query_id):
+        raise HTTPException(404, "Saved query not found")
+    row = Note(body=text, author=author, document_id=document_id, saved_query_id=saved_query_id)
+    db.add(row)
+    db.commit()
+    db.refresh(row)
+    return _note_out(row)
+
+
+@router.delete("/notes/{note_id}")
+def delete_note(note_id: str, db: Session = Depends(get_db)):
+    row = db.get(Note, note_id)
+    if not row:
+        raise HTTPException(404, "Note not found")
     db.delete(row)
     db.commit()
     return {"ok": True}

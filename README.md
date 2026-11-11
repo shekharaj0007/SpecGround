@@ -131,7 +131,12 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173), choose **Load samples**, and ask about A106 Grade B. API docs: [http://localhost:8000/docs](http://localhost:8000/docs).
+Open [http://localhost:5173](http://localhost:5173), choose **Load samples**, and ask about A106 Grade B. Open **Compare** to diff two documents by clause number, or **Saved** to attach a note to a kept answer. API docs: [http://localhost:8000/docs](http://localhost:8000/docs).
+
+Clause compare and notes use the same SQLite file and do not call an embedding or chat API. Leave `OPENAI_API_KEY` and `DATABASE_URL` unset.
+
+- **Document compare** — `POST /api/documents/compare` with `left_id` and `right_id`. Returns shared clause numbers whose text differs (`changed`), plus `only_left` and `only_right`. UI: `/compare`. The workspace **Compare** button is unchanged and still posts the numeric spec matrix to `POST /api/compare`.
+- **Notes** — `GET/POST /api/notes` stores a short note, an author, and a timestamp on one saved query or one document. Notes are listed under each saved query and under each document on Compare.
 
 ### Collections, saved queries, clause watch, citation export
 
@@ -166,8 +171,9 @@ backend/app/
   services/guardrails.py   faithfulness check
   services/units.py        pint helpers
   eval/dataset.json        gold questions
-  routers/library.py       collections, saved queries, clause watch
-frontend/src/              split-pane chat + PDF highlight + collections + saved + /eval
+  routers/library.py       collections, saved queries, clause watch, notes
+  services/doc_compare.py  clause diff for two documents
+frontend/src/              split-pane chat + PDF highlight + compare + collections + saved + /eval
 ```
 
 ---

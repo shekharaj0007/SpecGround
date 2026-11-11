@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api";
+import { NotesPanel } from "../components/NotesPanel";
 import type { SavedQuery } from "../types";
 
 export function SavedPage() {
@@ -58,6 +59,9 @@ export function SavedPage() {
           >
             Delete
           </button>
+          <div style={{ marginTop: 12 }}>
+            <NotesPanel savedQueryId={row.id} label="Notes" />
+          </div>
         </article>
       ))}
       {!rows.length && <p className="doc-meta">Nothing saved yet. Ask in the workspace and use Save on an answer.</p>}

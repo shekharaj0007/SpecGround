@@ -154,6 +154,39 @@ export interface CitationExport {
   message_id?: string | null;
 }
 
+export interface ClauseSide {
+  clause_number: string;
+  text: string;
+  page?: number | null;
+}
+
+export interface ClauseChange {
+  clause_number: string;
+  left_text: string;
+  right_text: string;
+  left_page?: number | null;
+  right_page?: number | null;
+}
+
+export interface ClauseCompare {
+  left_id: string;
+  right_id: string;
+  left_title: string;
+  right_title: string;
+  changed: ClauseChange[];
+  only_left: ClauseSide[];
+  only_right: ClauseSide[];
+}
+
+export interface Note {
+  id: string;
+  body: string;
+  author: string;
+  document_id?: string | null;
+  saved_query_id?: string | null;
+  created_at: string;
+}
+
 export interface EvalRun {
   id: string;
   scores: {

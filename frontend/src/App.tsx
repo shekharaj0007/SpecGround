@@ -5,6 +5,7 @@ import { ChatPane } from "./components/ChatPane";
 import { PdfPane } from "./components/PdfPane";
 import { Sidebar } from "./components/Sidebar";
 import { CollectionsPage } from "./pages/CollectionsPage";
+import { ComparePage } from "./pages/ComparePage";
 import { EvalPage } from "./pages/EvalPage";
 import { SavedPage } from "./pages/SavedPage";
 import type { ChatMessage, Citation, Document, HighlightTarget } from "./types";
@@ -249,6 +250,9 @@ export default function App() {
           <NavLink to="/" end className={({ isActive }) => (isActive ? "active" : "")}>
             Workspace
           </NavLink>
+          <NavLink to="/compare" className={({ isActive }) => (isActive ? "active" : "")}>
+            Compare
+          </NavLink>
           <NavLink to="/collections" className={({ isActive }) => (isActive ? "active" : "")}>
             Collections
           </NavLink>
@@ -262,6 +266,7 @@ export default function App() {
       </header>
       <Routes>
         <Route path="/" element={<Workspace />} />
+        <Route path="/compare" element={<ComparePage />} />
         <Route path="/collections" element={<CollectionsPage />} />
         <Route path="/saved" element={<SavedPage />} />
         <Route path="/eval" element={<EvalPage />} />

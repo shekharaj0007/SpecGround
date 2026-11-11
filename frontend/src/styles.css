@@ -434,3 +434,29 @@ button { cursor: pointer; }
   padding: 6px 8px;
   background: #241c08;
 }
+.compare-picks {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+@media (max-width: 800px) {
+  .compare-picks, .compare-grid { grid-template-columns: 1fr; }
+}
+.note-box {
+  width: 100%;
+  min-height: 64px;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  font-size: 13px;
+  resize: vertical;
+}
+select.field { background: var(--bg); color: var(--text); }

@@ -161,3 +161,48 @@ class CitationExportOut(BaseModel):
     citations: list[Any]
     bibliography: str
     message_id: Optional[str] = None
+
+
+class ClauseCompareIn(BaseModel):
+    left_id: str
+    right_id: str
+
+
+class ClauseSide(BaseModel):
+    clause_number: str
+    text: str
+    page: Optional[int] = None
+
+
+class ClauseChange(BaseModel):
+    clause_number: str
+    left_text: str
+    right_text: str
+    left_page: Optional[int] = None
+    right_page: Optional[int] = None
+
+
+class ClauseCompareOut(BaseModel):
+    left_id: str
+    right_id: str
+    left_title: str
+    right_title: str
+    changed: list[ClauseChange]
+    only_left: list[ClauseSide]
+    only_right: list[ClauseSide]
+
+
+class NoteIn(BaseModel):
+    body: str
+    author: str = "local"
+    document_id: Optional[str] = None
+    saved_query_id: Optional[str] = None
+
+
+class NoteOut(BaseModel):
+    id: str
+    body: str
+    author: str
+    document_id: Optional[str] = None
+    saved_query_id: Optional[str] = None
+    created_at: str
