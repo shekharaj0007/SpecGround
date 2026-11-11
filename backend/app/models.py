@@ -112,6 +112,63 @@ class Message(Base):
     conversation: Mapped[Conversation] = relationship(back_populates="messages")
 
 
+class Collection(Base):
+    __tablename__ = "collections"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    name: Mapped[str] = mapped_column(String(256))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class CollectionDocument(Base):
+    __tablename__ = "collection_documents"
+
+    collection_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("collections.id", ondelete="CASCADE"), primary_key=True
+    )
+    document_id: Mapped[str] = mapped_column(
+        String(36), ForeignKey("documents.id", ondelete="CASCADE"), primary_key=True
+    )
+
+
+class SavedQuery(Base):
+    __tablename__ = "saved_queries"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    question: Mapped[str] = mapped_column(Text)
+    answer: Mapped[str] = mapped_column(Text)
+    citation_ids: Mapped[list] = mapped_column(JSON, default=list)
+    collection_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class ClauseWatch(Base):
+    """A clause number or heading to compare when a newer document is ingested."""
+
+    __tablename__ = "clause_watches"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid4()))
+    clause_key: Mapped[str] = mapped_column(String(256))
+    heading: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
+    baseline_text: Mapped[str] = mapped_column(Text, default="")
+    baseline_document_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    changed: Mapped[bool] = mapped_column(Boolean, default=False)
+    latest_text: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+    latest_document_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class LastCitationExport(Base):
+    """The most recent assistant answer's citations, for bibliography export."""
+
+    __tablename__ = "last_citation_export"
+
+    id: Mapped[str] = mapped_column(String(16), primary_key=True)
+    message_id: Mapped[Optional[str]] = mapped_column(String(36), nullable=True)
+    citations: Mapped[list] = mapped_column(JSON, default=list)
+    bibliography: Mapped[str] = mapped_column(Text, default="")
+
+
 class EvalRun(Base):
     __tablename__ = "eval_runs"
 

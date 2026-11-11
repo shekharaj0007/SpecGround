@@ -41,6 +41,7 @@ class ChatRequest(BaseModel):
     question: str
     document_ids: list[str] = Field(default_factory=list)
     conversation_id: Optional[str] = None
+    collection_id: Optional[str] = None
 
 
 class ChatResponse(BaseModel):
@@ -105,3 +106,58 @@ class EvalRunOut(BaseModel):
     scores: dict[str, Any]
     cases: list[dict[str, Any]]
     created_at: str
+
+
+class CollectionIn(BaseModel):
+    name: str
+
+
+class CollectionMembers(BaseModel):
+    document_ids: list[str] = Field(default_factory=list)
+
+
+class CollectionOut(BaseModel):
+    id: str
+    name: str
+    document_ids: list[str]
+    created_at: str
+
+
+class SavedQueryIn(BaseModel):
+    question: str
+    answer: str
+    citation_ids: list[str] = Field(default_factory=list)
+    collection_id: Optional[str] = None
+
+
+class SavedQueryOut(BaseModel):
+    id: str
+    question: str
+    answer: str
+    citation_ids: list[str]
+    collection_id: Optional[str] = None
+    created_at: str
+
+
+class ClauseWatchIn(BaseModel):
+    clause_key: str
+    heading: Optional[str] = None
+
+
+class ClauseWatchOut(BaseModel):
+    id: str
+    clause_key: str
+    heading: Optional[str] = None
+    baseline_text: str
+    changed: bool
+    status: str
+    latest_text: Optional[str] = None
+    latest_document_id: Optional[str] = None
+    baseline_document_id: Optional[str] = None
+    created_at: str
+
+
+class CitationExportOut(BaseModel):
+    citations: list[Any]
+    bibliography: str
+    message_id: Optional[str] = None

@@ -69,7 +69,9 @@ flowchart LR
 
 ```bash
 cp .env.example .env
-# set OPENAI_API_KEY in .env
+# Optional: set ANTHROPIC_API_KEY for model answers.
+# Without a key, answers are extractive and embeddings stay local.
+# Sample documents are fictional.
 
 docker compose up --build
 ```
@@ -106,6 +108,38 @@ npm run dev
 
 Vite proxies `/api` to `localhost:8000`. UI: [http://localhost:5173](http://localhost:5173)
 
+### Run locally without Docker
+
+No Postgres and no API key. Sample documents are **fictional**. `DATABASE_URL` left unset uses SQLite at `data/specground.db`. A missing `OPENAI_API_KEY` uses the deterministic hasher in `backend/app/services/embeddings.py` (no model download). Answers are quoted from retrieved chunks and still return **not found in document** when the samples do not support the question. When `DATABASE_URL` points at Postgres, that path is unchanged.
+
+```powershell
+Set-Location "C:\Users\raj shekhar\Downloads\SpecGround\backend"
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue
+Remove-Item Env:OPENAI_API_KEY -ErrorAction SilentlyContinue
+Remove-Item Env:ANTHROPIC_API_KEY -ErrorAction SilentlyContinue
+python -m uvicorn app.main:app --reload --port 8000
+```
+
+Second terminal:
+
+```powershell
+Set-Location "C:\Users\raj shekhar\Downloads\SpecGround\frontend"
+npm install
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173), choose **Load samples**, and ask about A106 Grade B. API docs: [http://localhost:8000/docs](http://localhost:8000/docs).
+
+### Collections, saved queries, clause watch, citation export
+
+- **Collections** group documents under a name. A question sent with `collection_id` searches only those documents (`/api/collections`, UI at `/collections`).
+- **Saved queries** store the question, the answer, and the citation ids (`/api/saved-queries`, UI at `/saved`). Save from the workspace or from a collection answer.
+- **Clause watch** stores a clause number or heading. After a newer upload, the same clause with different text is marked `changed` (`/api/clause-watches`). Watch from a clause outline or from the Collections page.
+- **Citation export** returns the last answer’s citations as JSON and as a plain-text bibliography: `GET /api/citations/export` and `GET /api/citations/export?format=text`.
+
 ---
 
 ## Retrieval pipeline
@@ -132,7 +166,8 @@ backend/app/
   services/guardrails.py   faithfulness check
   services/units.py        pint helpers
   eval/dataset.json        gold questions
-frontend/src/              split-pane chat + PDF highlight + /eval
+  routers/library.py       collections, saved queries, clause watch
+frontend/src/              split-pane chat + PDF highlight + collections + saved + /eval
 ```
 
 ---

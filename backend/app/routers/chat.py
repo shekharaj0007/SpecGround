@@ -1,17 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException
+from uuid import uuid4
+
+from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import PlainTextResponse
 from sqlalchemy.orm import Session
 
 from app.db import get_db
-from app.models import Conversation, Document, Message
+from app.models import Collection, CollectionDocument, Conversation, Document, LastCitationExport, Message
 from app.schemas import (
     ChatRequest,
     ChatResponse,
+    CitationExportOut,
     CompareRequest,
     CompareResponse,
     ConversationOut,
     DocumentOut,
     MessageOut,
 )
+from app.services.bibliography import store_last_citations
 from app.services.conflicts import find_conflicts
 from app.services.generation import generate_answer
 from app.services.query_router import route_query
@@ -20,11 +25,25 @@ from app.services.retrieval import retrieve
 router = APIRouter(prefix="/api", tags=["chat"])
 
 
-def _ready_ids(db: Session, requested: list[str]) -> list[str]:
-    if requested:
-        found = db.query(Document.id).filter(Document.id.in_(requested), Document.status == "ready").all()
-        return [r[0] for r in found]
-    return [d.id for d in db.query(Document).filter(Document.status == "ready").all()]
+def _ready_ids(db: Session, requested: list[str], collection_id: str | None = None) -> list[str]:
+    scoped = requested
+    if collection_id:
+        collection = db.get(Collection, collection_id)
+        if not collection:
+            raise HTTPException(404, "Collection not found")
+        members = {
+            row[0]
+            for row in db.query(CollectionDocument.document_id)
+            .filter(CollectionDocument.collection_id == collection_id)
+            .all()
+        }
+        scoped = [doc_id for doc_id in requested if doc_id in members] if requested else list(members)
+        if not scoped:
+            return []
+    if scoped:
+        found = db.query(Document.id).filter(Document.id.in_(scoped), Document.status == "ready").all()
+        return [row[0] for row in found]
+    return [doc.id for doc in db.query(Document).filter(Document.status == "ready").all()]
 
 
 @router.post("/chat", response_model=ChatResponse)
@@ -41,14 +60,18 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
         db.add(convo)
         db.flush()
 
-    doc_ids = _ready_ids(db, req.document_ids)
+    doc_ids = _ready_ids(db, req.document_ids, req.collection_id)
     history = [(m.role, m.content) for m in (convo.messages or [])][-8:]
     docs = db.query(Document).filter(Document.id.in_(doc_ids)).all() if doc_ids else []
     insights = [(d.id, d.title or d.filename, d.insights or {}) for d in docs]
 
     try:
         routed = route_query(req.question, len(doc_ids), has_history=bool(history))
-        chunks = retrieve(db, req.question, routed, doc_ids)
+        # An empty collection must not fall through to every document.
+        if req.collection_id and not doc_ids:
+            chunks = []
+        else:
+            chunks = retrieve(db, req.question, routed, doc_ids)
         result = generate_answer(
             req.question,
             chunks,
@@ -60,20 +83,45 @@ def chat(req: ChatRequest, db: Session = Depends(get_db)):
     except RuntimeError as exc:
         raise HTTPException(503, str(exc)) from exc
 
+    citation_payload = [c.model_dump() for c in result.citations]
+    assistant_id = str(uuid4())
     db.add(Message(conversation_id=convo.id, role="user", content=req.question, query_type=routed.query_type))
     db.add(
         Message(
+            id=assistant_id,
             conversation_id=convo.id,
             role="assistant",
             content=result.answer,
-            citations=[c.model_dump() for c in result.citations],
+            citations=citation_payload,
             confidence=result.confidence,
             grounded=result.grounded,
             query_type=result.query_type,
         )
     )
+    store_last_citations(db, assistant_id, citation_payload)
     db.commit()
     return result
+
+
+@router.get("/citations/export", response_model=None)
+def export_citations(
+    export_format: str = Query("json", alias="format"),
+    db: Session = Depends(get_db),
+):
+    """Last answer's citations as JSON, including a plain-text bibliography.
+
+    `?format=text` returns the bibliography alone.
+    """
+    row = db.get(LastCitationExport, "last")
+    citations = list(row.citations or []) if row else []
+    bibliography = row.bibliography if row and row.bibliography else "No citations for the last answer."
+    if export_format == "text":
+        return PlainTextResponse(bibliography)
+    return CitationExportOut(
+        citations=citations,
+        bibliography=bibliography,
+        message_id=row.message_id if row else None,
+    )
 
 
 @router.post("/compare", response_model=CompareResponse)

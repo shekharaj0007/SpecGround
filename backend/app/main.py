@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.db import init_db
-from app.routers import chat, documents, eval as eval_router
+from app.routers import chat, documents, eval as eval_router, library
 from app.services.ingest import ensure_upload_dir
 
 app = FastAPI(
@@ -27,6 +27,7 @@ app.add_middleware(
 app.include_router(documents.router)
 app.include_router(chat.router)
 app.include_router(eval_router.router)
+app.include_router(library.router)
 
 
 @app.on_event("startup")
@@ -41,7 +42,10 @@ def health():
         "ok": True,
         "name": "SpecGround",
         "anthropic_configured": settings.anthropic_configured,
-        "llm": "anthropic" if settings.anthropic_configured else "none",
+        "openai_configured": bool((settings.openai_api_key or "").strip()),
+        "llm": "anthropic" if settings.anthropic_configured else "local-extractive",
+        "embeddings": "local-hash",
+        "database": "sqlite" if settings.using_sqlite else "postgres",
     }
 
 

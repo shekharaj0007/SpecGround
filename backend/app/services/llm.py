@@ -16,10 +16,9 @@ def client() -> Anthropic:
     global _client
     if _client is None:
         key = settings.resolved_anthropic_key
-        if not key.startswith("sk-ant-"):
+        if not settings.anthropic_configured:
             raise RuntimeError(
-                "Set ANTHROPIC_API_KEY in .env (it starts with sk-ant-). "
-                "Do not put it in OPENAI_API_KEY unless it is an Anthropic key."
+                "No model API key is configured. SpecGround answers from retrieved text locally."
             )
         _client = Anthropic(api_key=key)
     return _client

@@ -6,6 +6,7 @@ from app.config import settings
 from app.schemas import BBox, ChatResponse, Citation
 from app.services.guardrails import check_faithfulness, refusal_message
 from app.services.llm import complete_json
+from app.services.local_answer import answer_from_chunks, not_found_response
 from app.services.query_router import RoutedQuery
 from app.services.retrieval import RetrievedChunk
 from app.services.conflicts import find_conflicts
@@ -49,15 +50,14 @@ def generate_answer(
     doc_insights: list[tuple[str, str, dict]] | None = None,
 ) -> ChatResponse:
     if not chunks:
-        return ChatResponse(
-            conversation_id=conversation_id,
-            answer="Not found in the selected documents. No relevant sections were retrieved.",
-            citations=[],
-            confidence=0.0,
-            grounded=False,
-            query_type=routed.query_type,
-            retrieved_count=0,
+        return not_found_response(
+            conversation_id,
+            routed,
+            "No relevant sections were retrieved from the selected documents.",
         )
+
+    if not settings.anthropic_configured:
+        return answer_from_chunks(question, chunks, routed, conversation_id)
 
     sources = _sources_block(chunks)
     unit_note = unit_context_note(question, sources)
@@ -75,7 +75,10 @@ def generate_answer(
         "citation_indices (array of ints used), confidence (0-1)."
     )
 
-    data = complete_json(user=user, system=SYSTEM, model=settings.anthropic_chat_model)
+    try:
+        data = complete_json(user=user, system=SYSTEM, model=settings.anthropic_chat_model)
+    except RuntimeError:
+        return answer_from_chunks(question, chunks, routed, conversation_id)
     if "answer" not in data and data.get("raw"):
         data = {
             "answer": str(data.get("raw")),

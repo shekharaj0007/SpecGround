@@ -16,6 +16,10 @@ export function ChatPane({
   error,
   onSend,
   onCite,
+  onSave,
+  onExport,
+  savedIds,
+  bibliography,
   selectedCount,
 }: {
   messages: ChatMessage[];
@@ -23,6 +27,10 @@ export function ChatPane({
   error: string | null;
   onSend: (q: string) => void;
   onCite: (c: Citation) => void;
+  onSave: (message: ChatMessage, question: string) => void;
+  onExport: () => void;
+  savedIds: Set<string>;
+  bibliography: string;
   selectedCount: number;
 }) {
   const [text, setText] = useState("");
@@ -49,9 +57,15 @@ export function ChatPane({
     <section className="chat-pane">
       <div className="panel-h">
         <h2>Grounded chat</h2>
-        <span className="doc-meta">{selectedCount || "all"} in context</span>
+        <span style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <span className="doc-meta">{selectedCount || "all"} in context</span>
+          <button className="btn ghost" type="button" onClick={onExport}>
+            Export citations
+          </button>
+        </span>
       </div>
       {error && <div className="error-banner">{error}</div>}
+      {bibliography && <pre className="pre-block">{bibliography}</pre>}
       <div className="chat-log" ref={logRef}>
         {messages.length === 0 && (
           <div className="empty">
@@ -101,6 +115,21 @@ export function ChatPane({
                     {m.conflicts.map((c) => c.name).join(", ")}
                   </div>
                 )}
+                <div className="cite-row">
+                  <button
+                    className="btn ghost"
+                    type="button"
+                    disabled={savedIds.has(m.id)}
+                    onClick={() => {
+                      const question =
+                        [...messages.slice(0, messages.indexOf(m))].reverse().find((item) => item.role === "user")
+                          ?.content || m.content;
+                      onSave(m, question);
+                    }}
+                  >
+                    {savedIds.has(m.id) ? "Saved" : "Save query"}
+                  </button>
+                </div>
                 {!!m.citations?.length && (
                   <div className="cite-row">
                     {m.citations.map((c, i) => (

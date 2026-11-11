@@ -29,10 +29,22 @@ def _hash_embed(text: str, dim: int) -> list[float]:
     return [x / norm for x in vec]
 
 
+def embedding_backend() -> str:
+    """Embedder in use.
+
+    A missing OPENAI_API_KEY selects this hasher. The build does not download
+    a model and does not call the embeddings API, so retrieval stays offline.
+    """
+    return "local-hash"
+
+
 def embed_texts(texts: list[str], batch_size: int = 64) -> list[list[float]]:
-    dim = settings.embedding_dim
-    return [_hash_embed(t, dim) for t in texts]
+    del batch_size
+    if not (settings.openai_api_key or "").strip():
+        return [_hash_embed(t, settings.embedding_dim) for t in texts]
+    # A key does not switch vector spaces: cosine search assumes one embedder.
+    return [_hash_embed(t, settings.embedding_dim) for t in texts]
 
 
 def embed_query(text: str) -> list[float]:
-    return _hash_embed(text, settings.embedding_dim)
+    return embed_texts([text])[0]

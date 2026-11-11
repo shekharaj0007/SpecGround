@@ -36,17 +36,20 @@ button { cursor: pointer; }
 .app {
   height: 100%;
   display: grid;
-  grid-template-rows: 56px 1fr;
+  grid-template-rows: auto 1fr;
 }
 
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  gap: 12px;
+  min-height: 56px;
+  padding: 8px 16px;
   border-bottom: 1px solid var(--line);
   background: rgba(11, 14, 19, 0.92);
   backdrop-filter: blur(10px);
+  flex-wrap: wrap;
 }
 .brand { display: flex; align-items: center; gap: 10px; }
 .mark {
@@ -65,7 +68,7 @@ button { cursor: pointer; }
   text-transform: uppercase;
 }
 .brand span { color: var(--muted); font-size: 12px; margin-left: 8px; }
-.nav { display: flex; gap: 8px; }
+.nav { display: flex; gap: 8px; flex-wrap: wrap; }
 .nav a, .btn {
   border: 1px solid var(--line);
   background: var(--bg-elev);
@@ -376,6 +379,52 @@ button { cursor: pointer; }
   padding: 4px 0;
 }
 .outline-btn:hover { color: var(--brass); }
+.outline-row { display: flex; align-items: center; gap: 8px; }
+.outline-row .outline-btn { width: auto; flex: 1; }
+.outline-row .outline-btn.watch { flex: 0; color: var(--brass); }
+
+.library-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 16px;
+}
+@media (max-width: 900px) {
+  .library-grid { grid-template-columns: 1fr; }
+}
+.field {
+  width: 100%;
+  background: var(--bg);
+  color: var(--text);
+  border: 1px solid var(--line);
+  padding: 8px 10px;
+  font-size: 13px;
+}
+.stack { display: flex; flex-direction: column; gap: 8px; }
+.section-label {
+  margin: 0 0 8px;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.pre-block {
+  font-family: var(--mono);
+  font-size: 12px;
+  white-space: pre-wrap;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  padding: 10px;
+  color: var(--muted);
+  margin: 8px 12px;
+}
+.notice-banner {
+  background: #241c08;
+  color: var(--brass);
+  border: 1px solid var(--brass-dim);
+  padding: 8px 12px;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
 .conv-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .conflict {
   margin-top: 8px;

@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.db import SessionLocal, get_db
-from app.models import Document
+from app.models import CollectionDocument, Document
 from app.schemas import DocumentOut
 from app.services.ingest import ensure_upload_dir, ingest_document
 from app.services.insights import ensure_insights
@@ -118,6 +118,7 @@ def delete_document(document_id: str, db: Session = Depends(get_db)):
     if not doc:
         raise HTTPException(404, "Document not found")
     path = Path(doc.storage_path)
+    db.query(CollectionDocument).filter(CollectionDocument.document_id == document_id).delete()
     db.delete(doc)
     db.commit()
     if path.exists():

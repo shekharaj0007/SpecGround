@@ -1,9 +1,23 @@
+from pathlib import Path
+
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.orm import sessionmaker
 import time
 
 from app.config import settings
 from app.models import Base
+
+
+def _prepare_sqlite(url: str) -> None:
+    if not url.startswith("sqlite") or url.endswith(":memory:"):
+        return
+    raw = url.split("sqlite:///", 1)[-1]
+    if not raw or raw.startswith(":memory:"):
+        return
+    Path(raw).parent.mkdir(parents=True, exist_ok=True)
+
+
+_prepare_sqlite(settings.database_url)
 
 connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
 engine = create_engine(
@@ -26,8 +40,15 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, futu
 
 
 def init_db() -> None:
+    """Create tables.
+
+    SQLite tries once so a missing Postgres install does not block startup.
+    Postgres retries while the Docker database is still coming up.
+    """
+    _prepare_sqlite(settings.database_url)
+    attempts = 1 if settings.using_sqlite else 20
     last: Exception | None = None
-    for _ in range(20):
+    for attempt in range(attempts):
         try:
             if settings.database_url.startswith("postgresql"):
                 with engine.connect() as conn:
@@ -38,7 +59,8 @@ def init_db() -> None:
             return
         except Exception as exc:
             last = exc
-            time.sleep(1)
+            if attempt + 1 < attempts:
+                time.sleep(1)
     raise last or RuntimeError("Could not initialize database")
 
 

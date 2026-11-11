@@ -10,8 +10,10 @@ export function Sidebar({
   onDelete,
   onCompare,
   onJump,
+  onWatch,
   seeding,
   comparing,
+  note,
 }: {
   docs: Document[];
   selected: Set<string>;
@@ -21,8 +23,10 @@ export function Sidebar({
   onDelete: (id: string) => void;
   onCompare: () => void;
   onJump: (t: HighlightTarget) => void;
+  onWatch: (section: string, heading: string) => void;
   seeding: boolean;
   comparing: boolean;
+  note: string | null;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const selectedDocs = docs.filter((d) => selected.has(d.id) && d.status === "ready");
@@ -43,6 +47,7 @@ export function Sidebar({
         </button>
       </div>
       <div className="sidebar-body">
+        {note && <div className="notice-banner">{note}</div>}
         <label className="upload">
           Drop or click to upload PDFs
           <input
@@ -124,21 +129,25 @@ export function Sidebar({
           <div className="spec-block">
             <h2>Clause outline</h2>
             {outline.map((o) => (
-              <button
-                key={o.section + o.page}
-                className="outline-btn"
-                type="button"
-                onClick={() =>
-                  onJump({
-                    documentId: selectedDocs[0].id,
-                    page: o.page,
-                    bbox: o.bbox,
-                    snippet: o.title,
-                  })
-                }
-              >
-                §{o.section} · p.{o.page}
-              </button>
+              <div key={o.section + o.page} className="outline-row">
+                <button
+                  className="outline-btn"
+                  type="button"
+                  onClick={() =>
+                    onJump({
+                      documentId: selectedDocs[0].id,
+                      page: o.page,
+                      bbox: o.bbox,
+                      snippet: o.title,
+                    })
+                  }
+                >
+                  §{o.section} · p.{o.page}
+                </button>
+                <button className="outline-btn watch" type="button" onClick={() => onWatch(o.section, o.title)}>
+                  watch
+                </button>
+              </div>
             ))}
           </div>
         )}

@@ -119,6 +119,41 @@ export interface EvalCase {
   passed: boolean;
 }
 
+export interface Collection {
+  id: string;
+  name: string;
+  document_ids: string[];
+  created_at: string;
+}
+
+export interface SavedQuery {
+  id: string;
+  question: string;
+  answer: string;
+  citation_ids: string[];
+  collection_id?: string | null;
+  created_at: string;
+}
+
+export interface ClauseWatch {
+  id: string;
+  clause_key: string;
+  heading?: string | null;
+  baseline_text: string;
+  changed: boolean;
+  status: string;
+  latest_text?: string | null;
+  latest_document_id?: string | null;
+  baseline_document_id?: string | null;
+  created_at: string;
+}
+
+export interface CitationExport {
+  citations: Citation[];
+  bibliography: string;
+  message_id?: string | null;
+}
+
 export interface EvalRun {
   id: string;
   scores: {

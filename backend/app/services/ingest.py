@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.models import Chunk, Document, Element
 from app.services.chunker import chunk_document
+from app.services.clauses import refresh_all_watches
 from app.services.embeddings import embed_texts
 from app.services.insights import build_insights
 from app.services.parser import parse_pdf
@@ -95,6 +96,9 @@ def ingest_document(db: Session, document_id: str) -> None:
         doc.insights = build_insights(parsed)
         doc.status = "ready"
         doc.error = None
+        # autoflush is off; the watch scan must see status=ready and the new chunks.
+        db.flush()
+        refresh_all_watches(db)
         db.commit()
     except Exception as exc:
         db.rollback()

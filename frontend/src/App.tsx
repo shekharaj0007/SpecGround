@@ -4,7 +4,9 @@ import { api } from "./api";
 import { ChatPane } from "./components/ChatPane";
 import { PdfPane } from "./components/PdfPane";
 import { Sidebar } from "./components/Sidebar";
+import { CollectionsPage } from "./pages/CollectionsPage";
 import { EvalPage } from "./pages/EvalPage";
+import { SavedPage } from "./pages/SavedPage";
 import type { ChatMessage, Citation, Document, HighlightTarget } from "./types";
 
 function Workspace() {
@@ -17,6 +19,9 @@ function Workspace() {
   const [error, setError] = useState<string | null>(null);
   const [target, setTarget] = useState<HighlightTarget | null>(null);
   const [comparing, setComparing] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());
+  const [bibliography, setBibliography] = useState("");
 
   async function refreshDocs() {
     const list = await api.listDocuments();
@@ -119,6 +124,45 @@ function Workspace() {
     }
   }
 
+  async function onWatch(section: string, heading: string) {
+    setError(null);
+    try {
+      const watch = await api.createWatch(section, heading);
+      setNote(
+        watch.changed
+          ? `§${section} differs from an earlier upload. See Collections.`
+          : `Watching §${section}. A newer upload with different text is marked on Collections.`
+      );
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Could not watch clause");
+    }
+  }
+
+  async function onSave(message: ChatMessage, question: string) {
+    setError(null);
+    try {
+      await api.saveQuery({
+        question,
+        answer: message.content,
+        citation_ids: (message.citations ?? []).map((c) => c.chunk_id),
+      });
+      setSavedIds((prev) => new Set(prev).add(message.id));
+      setNote("Saved query.");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Save failed");
+    }
+  }
+
+  async function onExport() {
+    setError(null);
+    try {
+      const exported = await api.exportCitations();
+      setBibliography(exported.bibliography);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Export failed");
+    }
+  }
+
   async function onCompare() {
     setComparing(true);
     setError(null);
@@ -170,8 +214,10 @@ function Workspace() {
         onDelete={onDelete}
         onCompare={onCompare}
         onJump={setTarget}
+        onWatch={onWatch}
         seeding={seeding}
         comparing={comparing}
+        note={note}
       />
       <ChatPane
         messages={messages}
@@ -179,6 +225,10 @@ function Workspace() {
         error={error}
         onSend={onSend}
         onCite={onCite}
+        onSave={onSave}
+        onExport={onExport}
+        savedIds={savedIds}
+        bibliography={bibliography}
         selectedCount={selected.size}
       />
       <PdfPane target={target} onClose={() => setTarget(null)} />
@@ -199,6 +249,12 @@ export default function App() {
           <NavLink to="/" end className={({ isActive }) => (isActive ? "active" : "")}>
             Workspace
           </NavLink>
+          <NavLink to="/collections" className={({ isActive }) => (isActive ? "active" : "")}>
+            Collections
+          </NavLink>
+          <NavLink to="/saved" className={({ isActive }) => (isActive ? "active" : "")}>
+            Saved
+          </NavLink>
           <NavLink to="/eval" className={({ isActive }) => (isActive ? "active" : "")}>
             Eval
           </NavLink>
@@ -206,6 +262,8 @@ export default function App() {
       </header>
       <Routes>
         <Route path="/" element={<Workspace />} />
+        <Route path="/collections" element={<CollectionsPage />} />
+        <Route path="/saved" element={<SavedPage />} />
         <Route path="/eval" element={<EvalPage />} />
       </Routes>
     </div>

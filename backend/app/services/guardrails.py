@@ -53,7 +53,7 @@ def refusal_message(question: str, unsupported: list[str]) -> str:
     if unsupported:
         extra = "\n\nUnsupported claims that were withheld:\n" + "\n".join(f"- {c}" for c in unsupported[:6])
     return (
-        "Not found in the selected documents. The retrieved sections do not "
+        "Not found in document. The retrieved sections do not "
         "support a reliable answer to this question, so I will not guess — "
         "code values (allowable stress, MAWP, wall thickness, safety factors) "
         "must come from the source."

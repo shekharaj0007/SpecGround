@@ -1,8 +1,17 @@
 from pathlib import Path
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT = Path(__file__).resolve().parents[2]
+LOCAL_SQLITE = f"sqlite:///{(ROOT / 'data' / 'specground.db').as_posix()}"
+
+
+def _placeholder_key(key: str) -> bool:
+    lowered = (key or "").strip().lower()
+    if not lowered:
+        return True
+    return "your-key" in lowered or lowered.endswith("here") or "placeholder" in lowered
 
 
 class Settings(BaseSettings):
@@ -16,7 +25,7 @@ class Settings(BaseSettings):
     openai_embed_model: str = "text-embedding-3-small"
     embedding_dim: int = 384
 
-    database_url: str = f"sqlite:///{(ROOT / 'data' / 'specground.db').as_posix()}"
+    database_url: str = LOCAL_SQLITE
     upload_dir: str = str(ROOT / "data" / "uploads")
     cors_origins: str = "http://localhost:5173,http://localhost:3000"
     static_dir: str = ""
@@ -26,6 +35,14 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    @model_validator(mode="after")
+    def _local_database_default(self) -> "Settings":
+        # Unset or blank DATABASE_URL stays on the local SQLite file so uvicorn
+        # can boot on Windows when Postgres is not installed.
+        if not (self.database_url or "").strip():
+            self.database_url = LOCAL_SQLITE
+        return self
 
     @property
     def cors_origin_list(self) -> list[str]:
@@ -41,7 +58,12 @@ class Settings(BaseSettings):
 
     @property
     def anthropic_configured(self) -> bool:
-        return self.resolved_anthropic_key.startswith("sk-ant-")
+        key = self.resolved_anthropic_key
+        return key.startswith("sk-ant-") and not _placeholder_key(key)
+
+    @property
+    def using_sqlite(self) -> bool:
+        return self.database_url.startswith("sqlite")
 
 
 settings = Settings()  # reloaded from .env on process start
